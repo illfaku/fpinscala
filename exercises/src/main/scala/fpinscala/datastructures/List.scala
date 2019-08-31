@@ -78,7 +78,11 @@ object List { // `List` companion object. Contains functions for creating and wo
       else l
   }
 
-  def init[A](l: List[A]): List[A] = ???
+  def init[A](l: List[A]): List[A] = l match {
+    case Nil => throw new NoSuchElementException
+    case Cons(_, Nil) => Nil
+    case Cons(h, t) => Cons(h, init(t))
+  }
 
   def length[A](l: List[A]): Int = ???
 
