@@ -62,7 +62,11 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def length[A](l: List[A]): Int = ???
 
-  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
+  def foldLeft[A,B](l: List[A], z: B)(f: (A, B) => B): B = ???
+
+  def foldLeft2[A,B](l: List[A], z: B)(f: (A, B) => B): B = foldRight(l, (x: B) => x)((a, b) => x => b(f(a, x)))(z)
+
+  def foldRight2[A,B](l: List[A], z: B)(f: (A, B) => B): B = foldLeft(l, (x: B) => x)((a, b) => x => b(f(a, x)))(z)
 
   def map[A,B](l: List[A])(f: A => B): List[B] = ???
 }
