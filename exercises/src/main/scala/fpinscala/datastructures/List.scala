@@ -92,6 +92,13 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def filter2[A](l: List[A])(f: A => Boolean): List[A] = flatMap(l)(a => if (f(a)) List(a) else Nil)
 
+  def zipWithInt(as: List[Int], bs: List[Int]): List[Int] = (as, bs) match {
+    case (Nil, Nil) => Nil
+    case (t, Nil) => t
+    case (Nil, t) => t
+    case (Cons(h1, t1), Cons(h2, t2)) => Cons(h1 + h2, zipWithInt(t1, t2))
+  }
+
 
   def mkString[A](l: List[A], separator: String = ""): String = {
     foldLeft(l, new StringBuilder) { (a, b) =>
