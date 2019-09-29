@@ -78,6 +78,8 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def flatten[A](l: List[List[A]]): List[A] = foldRight(l, Nil: List[A])(append)
 
+  def increment(l: List[Int]): List[Int] = foldRight(l, Nil: List[Int])((a, b) => Cons(a + 1, b))
+
   def map[A,B](l: List[A])(f: A => B): List[B] = ???
 
 
