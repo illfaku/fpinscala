@@ -88,6 +88,8 @@ object List { // `List` companion object. Contains functions for creating and wo
     foldRight(l, Nil: List[A])((a, b) => if (f(a)) Cons(a, b) else b)
   }
 
+  def flatMap[A, B](l: List[A])(f: A => List[B]): List[B] = foldRight(l, Nil: List[B])((a, b) => append(f(a), b))
+
 
   def mkString[A](l: List[A], separator: String = ""): String = {
     foldLeft(l, new StringBuilder) { (a, b) =>
@@ -99,5 +101,6 @@ object List { // `List` companion object. Contains functions for creating and wo
   def main(args: Array[String]): Unit = {
     println(s"append2: ${mkString(append2(List(1, 2, 3), List(4, 5, 6)), ", ")}")
     println(s"append3: ${mkString(append3(List(1, 2, 3), List(4, 5, 6)), ", ")}")
+    println(s"flatMap: ${mkString(flatMap(List(1, 2, 3))(i => List(i, i)), ", ")}")
   }
 }
