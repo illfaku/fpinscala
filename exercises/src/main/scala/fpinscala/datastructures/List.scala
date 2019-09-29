@@ -84,6 +84,9 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def map[A,B](l: List[A])(f: A => B): List[B] = foldRight(l, Nil: List[B])((a, b) => Cons(f(a), b))
 
+  def filter[A](l: List[A])(f: A => Boolean): List[A] = {
+    foldRight(l, Nil: List[A])((a, b) => if (f(a)) Cons(a, b) else b)
+  }
 
 
   def mkString[A](l: List[A], separator: String = ""): String = {
