@@ -62,11 +62,33 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def length[A](l: List[A]): Int = ???
 
-  def foldLeft[A,B](l: List[A], z: B)(f: (A, B) => B): B = ???
+  @annotation.tailrec
+  def foldLeft[A,B](l: List[A], z: B)(f: (A, B) => B): B = l match {
+    case Nil => z
+    case Cons(h, t) => foldLeft(t, f(h, z))(f)
+  }
 
   def foldLeft2[A,B](l: List[A], z: B)(f: (A, B) => B): B = foldRight(l, (x: B) => x)((a, b) => x => b(f(a, x)))(z)
 
   def foldRight2[A,B](l: List[A], z: B)(f: (A, B) => B): B = foldLeft(l, (x: B) => x)((a, b) => x => b(f(a, x)))(z)
 
+  def append2[A](a1: List[A], a2: List[A]): List[A] = foldRight(a1, a2)(Cons(_, _))
+
+  def append3[A](a1: List[A], a2: List[A]): List[A] = foldLeft(a1, (x: List[A]) => x)((a, g) => l => g(Cons(a, l)))(a2)
+
   def map[A,B](l: List[A])(f: A => B): List[B] = ???
+
+
+
+  def mkString[A](l: List[A], separator: String = ""): String = {
+    foldLeft(l, new StringBuilder) { (a, b) =>
+      if (b.nonEmpty) b ++= separator
+      b ++= a.toString
+    }.toString
+  }
+
+  def main(args: Array[String]): Unit = {
+    println(s"append2: ${mkString(append2(List(1, 2, 3), List(4, 5, 6)), ", ")}")
+    println(s"append3: ${mkString(append3(List(1, 2, 3), List(4, 5, 6)), ", ")}")
+  }
 }
