@@ -105,6 +105,21 @@ object List { // `List` companion object. Contains functions for creating and wo
     case (Cons(h1, t1), Cons(h2, t2)) => Cons(f(h1, h2), zipWith(t1, t2)(f))
   }
 
+  @annotation.tailrec
+  def startsWith[A](list: List[A], prefix: List[A]): Boolean = (list, prefix) match {
+    case (_, Nil) => true
+    case (Cons(x, xs), Cons(y, ys)) if x == y => startsWith(xs, ys)
+    case _ => false
+  }
+
+  @annotation.tailrec
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
+    if (startsWith(sup, sub)) true else sup match {
+      case Cons(_, tail) => hasSubsequence(tail, sub)
+      case _ => false
+    }
+  }
+
 
   def mkString[A](l: List[A], separator: String = ""): String = {
     foldLeft(l, new StringBuilder) { (a, b) =>
@@ -117,5 +132,6 @@ object List { // `List` companion object. Contains functions for creating and wo
     println(s"append2: ${mkString(append2(List(1, 2, 3), List(4, 5, 6)), ", ")}")
     println(s"append3: ${mkString(append3(List(1, 2, 3), List(4, 5, 6)), ", ")}")
     println(s"flatMap: ${mkString(flatMap(List(1, 2, 3))(i => List(i, i)), ", ")}")
+    println(s"hasSubsequence: ${hasSubsequence(List(1, 5, 2, 6), List(5, 2))}")
   }
 }
