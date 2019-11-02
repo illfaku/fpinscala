@@ -100,5 +100,70 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def reverse[A](l: List[A]): List[A] = foldLeft(l, Nil: List[A])(Cons(_, _))
 
-  def map[A,B](l: List[A])(f: A => B): List[B] = ???
+  def foldLeft2[A,B](l: List[A], z: B)(f: (A, B) => B): B = foldRight(l, (x: B) => x)((a, b) => x => b(f(a, x)))(z)
+
+  def foldRight2[A,B](l: List[A], z: B)(f: (A, B) => B): B = foldLeft(l, (x: B) => x)((a, b) => x => b(f(a, x)))(z)
+
+  def append2[A](a1: List[A], a2: List[A]): List[A] = foldRight(a1, a2)(Cons(_, _))
+
+  def append3[A](a1: List[A], a2: List[A]): List[A] = foldLeft(a1, (x: List[A]) => x)((a, g) => l => g(Cons(a, l)))(a2)
+
+  def flatten[A](l: List[List[A]]): List[A] = foldRight(l, Nil: List[A])(append)
+
+  def increment(l: List[Int]): List[Int] = foldRight(l, Nil: List[Int])((a, b) => Cons(a + 1, b))
+
+  def double2string(l: List[Double]): List[String] = foldRight(l, Nil: List[String])((a, b) => Cons(a.toString, b))
+
+  def map[A,B](l: List[A])(f: A => B): List[B] = foldRight(l, Nil: List[B])((a, b) => Cons(f(a), b))
+
+  def filter[A](l: List[A])(f: A => Boolean): List[A] = {
+    foldRight(l, Nil: List[A])((a, b) => if (f(a)) Cons(a, b) else b)
+  }
+
+  def flatMap[A, B](l: List[A])(f: A => List[B]): List[B] = foldRight(l, Nil: List[B])((a, b) => append(f(a), b))
+
+  def filter2[A](l: List[A])(f: A => Boolean): List[A] = flatMap(l)(a => if (f(a)) List(a) else Nil)
+
+  def zipWithInt(as: List[Int], bs: List[Int]): List[Int] = (as, bs) match {
+    case (Nil, Nil) => Nil
+    case (t, Nil) => t
+    case (Nil, t) => t
+    case (Cons(h1, t1), Cons(h2, t2)) => Cons(h1 + h2, zipWithInt(t1, t2))
+  }
+
+  def zipWith[A, B, C](as: List[A], bs: List[B])(f: (A, B) => C): List[C] = (as, bs) match {
+    case (_, Nil) => Nil
+    case (Nil, _) => Nil
+    case (Cons(h1, t1), Cons(h2, t2)) => Cons(f(h1, h2), zipWith(t1, t2)(f))
+  }
+
+  @annotation.tailrec
+  def startsWith[A](list: List[A], prefix: List[A]): Boolean = (list, prefix) match {
+    case (_, Nil) => true
+    case (Cons(x, xs), Cons(y, ys)) if x == y => startsWith(xs, ys)
+    case _ => false
+  }
+
+  @annotation.tailrec
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
+    if (startsWith(sup, sub)) true else sup match {
+      case Cons(_, tail) => hasSubsequence(tail, sub)
+      case _ => false
+    }
+  }
+
+
+  def mkString[A](l: List[A], separator: String = ""): String = {
+    foldLeft(l, new StringBuilder) { (a, b) =>
+      if (b.nonEmpty) b ++= separator
+      b ++= a.toString
+    }.toString
+  }
+
+  def main(args: Array[String]): Unit = {
+    println(s"append2: ${mkString(append2(List(1, 2, 3), List(4, 5, 6)), ", ")}")
+    println(s"append3: ${mkString(append3(List(1, 2, 3), List(4, 5, 6)), ", ")}")
+    println(s"flatMap: ${mkString(flatMap(List(1, 2, 3))(i => List(i, i)), ", ")}")
+    println(s"hasSubsequence: ${hasSubsequence(List(1, 5, 2, 6), List(5, 2))}")
+  }
 }

@@ -1,4 +1,4 @@
-scalaVersion in ThisBuild := "2.13.0"
+scalaVersion in ThisBuild := "2.13.1"
 
 lazy val root = (project in file("."))
   .aggregate(exercises, answers)
