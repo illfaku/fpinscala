@@ -35,4 +35,19 @@ object Tree {
     }
     loop(List(t), Int.MinValue)
   }
+
+  def depth(t: Tree[_]): Int = t match {
+    case Leaf(_) => 1
+    case Branch(l, r) => 1 + (depth(l) max depth(r))
+  }
+
+  def depth2(t: Tree[_]): Int = {
+    @annotation.tailrec
+    def loop(branches: List[(Tree[_], Int)], result: Int): Int = branches match {
+      case Nil => result
+      case Cons((Leaf(_), d), tail) => loop(tail, result max (d + 1))
+      case Cons((Branch(l, r), d), tail) => loop(Cons((l, d + 1), Cons((r, d + 1), tail)), result)
+    }
+    loop(List((t, 0)), 0)
+  }
 }
