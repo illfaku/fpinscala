@@ -20,4 +20,19 @@ object Tree {
     }
     loop(List(t), 0)
   }
+
+  def maximum(t: Tree[Int]): Int = t match {
+    case Leaf(value) => value
+    case Branch(l, r) => maximum(l) max maximum(r)
+  }
+
+  def maximum2(t: Tree[Int]): Int = {
+    @annotation.tailrec
+    def loop(branches: List[Tree[Int]], result: Int): Int = branches match {
+      case Nil => result
+      case Cons(Leaf(value), tail) => loop(tail, result max value)
+      case Cons(Branch(l, r), tail) => loop(Cons(l, Cons(r, tail)), result)
+    }
+    loop(List(t), Int.MinValue)
+  }
 }
