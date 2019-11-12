@@ -1,7 +1,33 @@
 package fpinscala.laziness
 
-import Stream._
+import scala.collection.mutable.ListBuffer
+import scala.{Stream => _}
+
 trait Stream[+A] {
+
+  def toList0: List[A] = this match {
+    case Empty => Nil
+    case Cons(h, t) => h() :: t().toList0
+  }
+
+  def toList: List[A] = {
+    @annotation.tailrec
+    def loop(s: Stream[A], result: List[A]): List[A] = s match {
+      case Cons(h, t) => loop(t(), h() :: result)
+      case _ => result.reverse
+    }
+    loop(this, Nil)
+  }
+
+  def toList1: List[A] = {
+    val buffer = ListBuffer.empty[A]
+    @annotation.tailrec
+    def loop(s: Stream[A]): List[A] = s match {
+      case Cons(h, t) => buffer += h(); loop(t())
+      case _ => buffer.toList
+    }
+    loop(this)
+  }
 
   def foldRight[B](z: => B)(f: (A, => B) => B): B = // The arrow `=>` in front of the argument type `B` means that the function `f` takes its second argument by name and may choose not to evaluate it.
     this match {
@@ -9,7 +35,7 @@ trait Stream[+A] {
       case _ => z
     }
 
-  def exists(p: A => Boolean): Boolean = 
+  def exists(p: A => Boolean): Boolean =
     foldRight(false)((a, b) => p(a) || b) // Here `b` is the unevaluated recursive step that folds the tail of the stream. If `p(a)` returns `true`, `b` will never be evaluated and the computation terminates early.
 
   @annotation.tailrec
@@ -45,7 +71,7 @@ object Stream {
   def empty[A]: Stream[A] = Empty
 
   def apply[A](as: A*): Stream[A] =
-    if (as.isEmpty) empty 
+    if (as.isEmpty) empty
     else cons(as.head, apply(as.tail: _*))
 
   val ones: Stream[Int] = Stream.cons(1, ones)
