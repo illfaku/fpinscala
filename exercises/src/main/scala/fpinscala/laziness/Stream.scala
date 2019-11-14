@@ -102,5 +102,10 @@ object Stream {
 
   def from(n: Int): Stream[Int] = cons(n, from(n + 1))
 
+  val fibs: Stream[Int] = {
+    def f(n: Int, m: Int): Stream[Int] = cons(m, f(m, n + m))
+    f(0, 1)
+  }
+
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = ???
 }
