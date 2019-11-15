@@ -78,6 +78,33 @@ trait Stream[+A] {
 
   def flatMap[B](f: A => Stream[B]): Stream[B] = foldRight(Stream.empty[B])((h, t) => f(h).append(t))
 
+  def mapUnfold[B](f: A => B): Stream[B] = Stream.unfold(this) {
+    case Cons(h, t) => Some((f(h()), t()))
+    case _ => None
+  }
+
+  def takeUnfold(n: Int): Stream[A] = Stream.unfold((this, n)) {
+    case (Cons(h, t), n) if n > 0 => Some((h(), (t(), n - 1)))
+    case _ => None
+  }
+
+  def takeWhileUnfold(p: A => Boolean): Stream[A] = Stream.unfold(this) {
+    case Cons(h, t) if p(h()) => Some((h(), t()))
+    case _ => None
+  }
+
+  def zipWithUnfold[B, C](that: Stream[B])(f: (A, B) => C): Stream[C] = Stream.unfold((this, that)) {
+    case (Cons(ah, at), Cons(bh, bt)) => Some((f(ah(), bh()), (at(), bt())))
+    case _ => None
+  }
+
+  def zipAllUnfold[B](that: Stream[B]): Stream[(Option[A], Option[B])] = Stream.unfold((this, that)) {
+    case (Cons(ah, at), Cons(bh, bt)) => Some(((Some(ah()), Some(bh())), (at(), bt())))
+    case (Cons(ah, at), empty) => Some(((Some(ah()), None), (at(), empty)))
+    case (empty, Cons(bh, bt)) => Some(((None, Some(bh())), (empty, bt())))
+    case _ => None
+  }
+
   def startsWith[B](s: Stream[B]): Boolean = ???
 }
 case object Empty extends Stream[Nothing]
