@@ -74,7 +74,7 @@ trait Stream[+A] {
 
   def filter(p: A => Boolean): Stream[A] = foldRight(Stream.empty[A])((h, t) => if (p(h)) Stream.cons(h, t) else t)
 
-  def append[B >: A](s: => Stream[B]): Stream[B] = foldRight(s)(Stream.cons)
+  def append[B >: A](s: => Stream[B]): Stream[B] = foldRight(s)(Stream.cons(_, _))
 
   def flatMap[B](f: A => Stream[B]): Stream[B] = foldRight(Stream.empty[B])((h, t) => f(h).append(t))
 
@@ -110,6 +110,11 @@ trait Stream[+A] {
   }.forAll {
     case (a, b) => a == b
   }
+
+  def tails: Stream[Stream[A]] = Stream.cons(this, Stream.unfold(this) {
+    case Cons(_, t) => Some(t() -> t())
+    case _ => None
+  })
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
