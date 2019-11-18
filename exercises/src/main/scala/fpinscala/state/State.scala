@@ -1,5 +1,7 @@
 package fpinscala.state
 
+import scala.collection.mutable.ListBuffer
+
 
 trait RNG {
   def nextInt: (Int, RNG) // Should generate a random `Int`. We'll later define other functions in terms of `nextInt`.
@@ -84,7 +86,27 @@ object RNG {
     (f(a, b), r2)
   }
 
-  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = ???
+  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = fs match {
+    case h :: t => map2(h, sequence(t))(_ :: _)
+    case _ => unit(Nil)
+  }
+
+  def sequenceTail[A](fs: List[Rand[A]]): Rand[List[A]] = rng => {
+    val buffer = new ListBuffer[A]
+    @annotation.tailrec
+    def loop(s: List[Rand[A]], r: RNG): (List[A], RNG) = s match {
+      case h :: t =>
+        val (a, rn) = h(r)
+        buffer += a
+        loop(t, rn)
+      case Nil => (buffer.toList, r)
+    }
+    loop(fs, rng)
+  }
+
+  def sequenceFold[A](fs: List[Rand[A]]): Rand[List[A]] = fs.foldRight(unit(Nil: List[A]))(map2(_, _)(_ :: _))
+
+  def intSequence(count: Int): Rand[List[Int]] = sequence(List.fill(count)(_.nextInt))
 
   def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = ???
 }
