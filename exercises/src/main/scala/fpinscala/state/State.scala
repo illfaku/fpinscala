@@ -124,12 +124,14 @@ object RNG {
 }
 
 case class State[S,+A](run: S => (A, S)) {
-  def map[B](f: A => B): State[S, B] =
-    ???
-  def map2[B,C](sb: State[S, B])(f: (A, B) => C): State[S, C] =
-    ???
-  def flatMap[B](f: A => State[S, B]): State[S, B] =
-    ???
+
+  def map[B](f: A => B): State[S, B] = State(run.andThen(Function.tupled((a, s) => (f(a), s))))
+
+  def map2[B,C](sb: State[S, B])(f: (A, B) => C): State[S, C] = {
+    State(run.andThen(Function.tupled((a, s1) => sb.run.andThen(Function.tupled((b, s2) => (f(a, b), s2)))(s1))))
+  }
+
+  def flatMap[B](f: A => State[S, B]): State[S, B] = State(run.andThen(Function.tupled((a, s) => f(a).run(s))))
 }
 
 sealed trait Input
@@ -140,5 +142,10 @@ case class Machine(locked: Boolean, candies: Int, coins: Int)
 
 object State {
   type Rand[A] = State[RNG, A]
+
+  def unit[S, A](a: A): State[S, A] = State((a, _))
+
+  def sequence[S, A](fs: List[State[S, A]]): State[S, List[A]] = fs.foldRight(unit[S, List[A]](Nil))(_.map2(_)(_ :: _))
+
   def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
 }
