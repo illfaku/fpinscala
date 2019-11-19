@@ -115,11 +115,28 @@ trait Stream[+A] {
     case Cons(_, t) => Some(t() -> t())
     case _ => None
   })
+
+  def scanRight[B](z: => B)(f: (A, => B) => B): Stream[B] = this match {
+    case Cons(h, t) =>
+      lazy val s @ Cons(next, _) = t().scanRight(z)(f)
+      Stream.cons(f(h(), next()), s)
+    case _ => Stream(z)
+  }
+
+  def scanRight2[B](z: => B)(f: (A, => B) => B): Stream[B] = foldRight(Stream(z)) { (a, s) =>
+    lazy val Cons(next, _) = s
+    Stream.cons(f(a, next()), s)
+  }
 }
 case object Empty extends Stream[Nothing]
 case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
 
 object Stream {
+
+  def main(args: Array[String]): Unit = {
+    println(Stream(1, 2, 3).scanRight2(0)(_ + _).toList)
+  }
+
   def cons[A](hd: => A, tl: => Stream[A]): Stream[A] = {
     lazy val head = hd
     lazy val tail = tl
