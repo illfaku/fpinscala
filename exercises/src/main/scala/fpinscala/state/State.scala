@@ -2,7 +2,6 @@ package fpinscala.state
 
 import scala.collection.mutable.ListBuffer
 
-
 trait RNG {
   def nextInt: (Int, RNG) // Should generate a random `Int`. We'll later define other functions in terms of `nextInt`.
 }
@@ -31,10 +30,6 @@ object RNG {
       val (a, rng2) = s(rng)
       (f(a), rng2)
     }
-
-  def main(args: Array[String]): Unit = {
-
-  }
 
   def nonNegativeInt(rng: RNG): (Int, RNG) = {
     val (result, nextRng) = rng.nextInt
@@ -147,5 +142,30 @@ object State {
 
   def sequence[S, A](fs: List[State[S, A]]): State[S, List[A]] = fs.foldRight(unit[S, List[A]](Nil))(_.map2(_)(_ :: _))
 
-  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
+  def modify0[S](f: S => S): State[S, Unit] = for {
+    s <- get0 // Gets the current state and assigns it to `s`.
+    _ <- set0(f(s)) // Sets the new state to `f` applied to `s`.
+  } yield ()
+
+  def get0[S]: State[S, S] = State(s => (s, s))
+
+  def set0[S](s: S): State[S, Unit] = State(_ => ((), s))
+
+  def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = {
+    sequence(inputs.map(i => modify0[Machine] { s =>
+      i match {
+        case Coin if s.locked && s.candies > 0 => s.copy(locked = false, coins = s.coins + 1)
+        case Turn if !s.locked && s.candies > 0 => s.copy(locked = true, candies = s.candies - 1)
+        case _ => s
+      }
+    })).flatMap(_ => get0).map(m => (m.coins, m.candies))
+  }
+
+  def main(args: Array[String]): Unit = {
+    println(simulateMachine(List(
+      Coin, Turn, Turn, Coin, Coin, Turn, Coin, Turn
+    )).run(
+      Machine(locked = true, 10, 0)
+    )._1)
+  }
 }
