@@ -65,6 +65,22 @@ object Par {
 
   def sequence[A](ps: List[Par[A]]): Par[List[A]] = ps.foldRight(unit(Nil: List[A]))(map2(_, _)(_ :: _))
 
+  def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]] = {
+    def loop(is: IndexedSeq[A]): Par[IndexedSeq[A]] = {
+      if (is.size <= 1) {
+        unit(is.headOption.filter(f) to IndexedSeq)
+      } else {
+        val (xs, ys) = is.splitAt(is.size / 2)
+        fork(map2(loop(xs), loop(ys))(_ ++ _))
+      }
+    }
+    fork(map(loop(as to IndexedSeq))(_ to List))
+  }
+
+  def parFilter2[A](as: List[A])(f: A => Boolean): Par[List[A]] = {
+    map(sequence(as.map(asyncF(Some(_).filter(f)))))(_.flatten)
+  }
+
   def equal[A](e: ExecutorService)(p: Par[A], p2: Par[A]): Boolean = 
     p(e).get == p2(e).get
 
