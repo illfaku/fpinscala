@@ -142,21 +142,17 @@ object Nonblocking {
     // see `Nonblocking.scala` answers file. This function is usually called something else!
     def chooser[A,B](p: Par[A])(f: A => Par[B]): Par[B] = es => cb => p(es)(k => eval(es)(f(k)(es)(cb)))
 
-    def flatMap[A,B](p: Par[A])(f: A => Par[B]): Par[B] =
-      ???
+    def flatMap[A,B](p: Par[A])(f: A => Par[B]): Par[B] = es => cb => p(es)(k => eval(es)(f(k)(es)(cb)))
 
     def choiceViaChooser[A](p: Par[Boolean])(f: Par[A], t: Par[A]): Par[A] = chooser(p)(if (_) t else f)
 
     def choiceNChooser[A](p: Par[Int])(choices: List[Par[A]]): Par[A] = chooser(p)(choices.apply)
 
-    def join[A](p: Par[Par[A]]): Par[A] =
-      ???
+    def join[A](p: Par[Par[A]]): Par[A] = es => cb => p(es)(k => eval(es)(k(es)(cb)))
 
-    def joinViaFlatMap[A](a: Par[Par[A]]): Par[A] =
-      ???
+    def joinViaFlatMap[A](a: Par[Par[A]]): Par[A] = flatMap(a)(identity)
 
-    def flatMapViaJoin[A,B](p: Par[A])(f: A => Par[B]): Par[B] =
-      ???
+    def flatMapViaJoin[A,B](p: Par[A])(f: A => Par[B]): Par[B] = join(p.map(f))
 
     /* Gives us infix syntax for `Par`. */
     implicit def toParOps[A](p: Par[A]): ParOps[A] = new ParOps(p)
