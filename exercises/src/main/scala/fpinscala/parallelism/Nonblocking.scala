@@ -137,8 +137,7 @@ object Nonblocking {
       choiceN(a.map(_.compareTo(false)))(List(ifFalse, ifTrue))
     }
 
-    def choiceMap[K,V](p: Par[K])(ps: Map[K,Par[V]]): Par[V] =
-      ???
+    def choiceMap[K,V](p: Par[K])(ps: Map[K,Par[V]]): Par[V] = es => cb => p(es)(k => eval(es)(ps(k)(es)(cb)))
 
     // see `Nonblocking.scala` answers file. This function is usually called something else!
     def chooser[A,B](p: Par[A])(f: A => Par[B]): Par[B] =
