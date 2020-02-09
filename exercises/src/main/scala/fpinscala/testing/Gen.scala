@@ -13,13 +13,6 @@ The library developed in this chapter goes through several iterations. This file
 shell, which you can fill in and modify while working through the chapter.
 */
 
-trait Prop { self =>
-  def check: Boolean
-  def &&(p: Prop): Prop = new Prop {
-    override def check: Boolean = self.check && p.check
-  }
-}
-
 case class GenState[A](sample: State[RNG,A]) {
 
   def flatMap[B](f: A => GenState[B]): GenState[B] = GenState(sample.flatMap(f(_).sample))
@@ -48,7 +41,35 @@ object GenState {
   }
 }
 
+case class Prop(run: (TestCases,RNG) => Result) {
+  def &&(p: Prop): Prop = Prop((t, r) => {
+    val result = run(t, r)
+    if (result.isFalsified) result
+    else p.run(t, r)
+  })
+  def ||(p: Prop): Prop = Prop((t, r) => {
+    val result = run(t, r)
+    if (!result.isFalsified) result
+    else p.run(t, r)
+  })
+}
+
 object Prop {
+
+  type FailedCase = String
+  type SuccessCount = Int
+  type TestCases = Int
+  sealed trait Result {
+    def isFalsified: Boolean
+  }
+  case object Passed extends Result {
+    def isFalsified = false
+  }
+  case class Falsified(failure: FailedCase,
+    successes: SuccessCount) extends Result {
+    def isFalsified = true
+  }
+
   def forAll[A](gen: Gen[A])(f: A => Boolean): Prop = ???
 }
 
