@@ -20,7 +20,12 @@ trait Prop { self =>
   }
 }
 
-case class GenState[A](sample: State[RNG,A])
+case class GenState[A](sample: State[RNG,A]) {
+
+  def flatMap[B](f: A => GenState[B]): GenState[B] = GenState(sample.flatMap(f(_).sample))
+
+  def listOfN(size: GenState[Int]): GenState[List[A]] = size.flatMap(GenState.listOfN(_, this))
+}
 
 object GenState {
 
