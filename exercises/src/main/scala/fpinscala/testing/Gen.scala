@@ -39,6 +39,8 @@ object GenState {
   def boolean: GenState[Boolean] = GenState(State[RNG, Int](_.nextInt).map(_ % 2 == 1))
 
   def listOfN[A](n: Int, g: GenState[A]): GenState[List[A]] = GenState(State.sequence(List.fill(n)(g.sample)))
+
+  def union[A](g1: GenState[A], g2: GenState[A]): GenState[A] = boolean.flatMap(if (_) g1 else g2)
 }
 
 object Prop {
