@@ -20,6 +20,15 @@ trait Prop { self =>
   }
 }
 
+case class GenState[A](sample: State[RNG,A])
+
+object GenState {
+  def choose(start: Int, stopExclusive: Int): GenState[Int] = {
+    require(start >= 0 && start < stopExclusive)
+    GenState(State(RNG.nonNegativeLessThan(stopExclusive - start)).map(start + _))
+  }
+}
+
 object Prop {
   def forAll[A](gen: Gen[A])(f: A => Boolean): Prop = ???
 }
