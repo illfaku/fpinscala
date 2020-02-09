@@ -41,6 +41,11 @@ object GenState {
   def listOfN[A](n: Int, g: GenState[A]): GenState[List[A]] = GenState(State.sequence(List.fill(n)(g.sample)))
 
   def union[A](g1: GenState[A], g2: GenState[A]): GenState[A] = boolean.flatMap(if (_) g1 else g2)
+
+  def weighted[A](g1: (GenState[A],Double), g2: (GenState[A],Double)): GenState[A] = {
+    val x = g1._2.abs / (g1._2.abs + g2._2.abs)
+    GenState(State(RNG.double)).flatMap(d => if (d < x) g1._1 else g2._1)
+  }
 }
 
 object Prop {
