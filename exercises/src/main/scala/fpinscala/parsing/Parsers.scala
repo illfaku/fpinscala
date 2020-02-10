@@ -20,6 +20,12 @@ trait Parsers[Parser[+_]] { self => // so inner classes may call methods of trai
     loop(succeed(List.empty[A]))
   }
 
+  def listOfN[A](n: Int, p: Parser[A]): Parser[List[A]] = {
+    @scala.annotation.tailrec
+    def loop(c: Int, r: Parser[List[A]]): Parser[List[A]] = if (c < n) loop(c + 1, map2(p, r)(_ :: _)) else r
+    loop(n, succeed(List.empty[A]))
+  }
+
   case class ParserOps[A](p: Parser[A]) {
 
     def |[B>:A](p2: Parser[B]): Parser[B] = self.or(p,p2)
