@@ -39,6 +39,7 @@ trait Parsers[Parser[+_]] { self => // so inner classes may call methods of trai
 
     def many: Parser[List[A]] = self.many(p)
     def map[B](f: A => B): Parser[B] = self.map(p)(f)
+    def slice: Parser[String] = self.slice(p)
     def flatMap[B](f: A => Parser[B]): Parser[B] = self.flatMap(p)(f)
   }
 

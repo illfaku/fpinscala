@@ -75,7 +75,7 @@ case class Gen[A](sample: State[RNG,A]) {
   def unsized: SGen[A] = SGen(_ => this)
 }
 
-case class SGen[+A](forSize: Int => Gen[A]) {
+case class SGen[A](forSize: Int => Gen[A]) {
 
   def flatMap[B](f: A => SGen[B]): SGen[B] = SGen(n => forSize(n).flatMap(f(_).forSize(n)))
 }
