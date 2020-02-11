@@ -14,10 +14,11 @@ trait Parsers[Parser[+_]] { self => // so inner classes may call methods of trai
   def char(c: Char): Parser[Char] = string(c.toString) map (_.charAt(0))
   def succeed[A](a: A): Parser[A] = string("") map (_ => a)
   def slice[A](p: Parser[A]): Parser[String]
-  def product[A,B](p: Parser[A], p2: Parser[B]): Parser[(A,B)]
+  def product[A,B](p: Parser[A], p2: => Parser[B]): Parser[(A,B)] = p.flatMap(a => p2.map(a -> _))
   def flatMap[A,B](p: Parser[A])(f: A => Parser[B]): Parser[B]
 
-  def map2[A,B,C](p: Parser[A], p2: Parser[B])(f: (A,B) => C): Parser[C] = product(p, p2).map(f.tupled)
+//  def map2[A,B,C](p: Parser[A], p2: Parser[B])(f: (A,B) => C): Parser[C] = product(p, p2).map(f.tupled)
+  def map2[A,B,C](p: Parser[A], p2: => Parser[B])(f: (A,B) => C): Parser[C] = for (a <- p; b <- p2) yield f(a, b)
   def many1[A](p: Parser[A]): Parser[List[A]] = map2(p, many(p))(_ :: _)
 
   def many[A](p: Parser[A]): Parser[List[A]] = {
