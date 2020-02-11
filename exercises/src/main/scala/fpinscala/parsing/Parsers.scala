@@ -10,7 +10,7 @@ trait Parsers[Parser[+_]] { self => // so inner classes may call methods of trai
   implicit def asStringParser[A](a: A)(implicit f: A => Parser[String]): ParserOps[String] = ParserOps(f(a))
   implicit def regex(r: Regex): Parser[String]
 
-  def map[A,B](a: Parser[A])(f: A => B): Parser[B]
+  def map[A,B](a: Parser[A])(f: A => B): Parser[B] = a.flatMap(x => succeed(f(x)))
   def char(c: Char): Parser[Char] = string(c.toString) map (_.charAt(0))
   def succeed[A](a: A): Parser[A] = string("") map (_ => a)
   def slice[A](p: Parser[A]): Parser[String]
