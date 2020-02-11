@@ -1,16 +1,21 @@
 package fpinscala.parsing
 
+import scala.util.matching.Regex
+
 trait Parsers[Parser[+_]] { self => // so inner classes may call methods of trait
 
   def or[A](s1: Parser[A], s2: Parser[A]): Parser[A]
   implicit def string(s: String): Parser[String]
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps[A](p)
   implicit def asStringParser[A](a: A)(implicit f: A => Parser[String]): ParserOps[String] = ParserOps(f(a))
+  implicit def regex(r: Regex): Parser[String]
 
   def map[A,B](a: Parser[A])(f: A => B): Parser[B]
+  def char(c: Char): Parser[Char] = string(c.toString) map (_.charAt(0))
   def succeed[A](a: A): Parser[A] = string("") map (_ => a)
   def slice[A](p: Parser[A]): Parser[String]
   def product[A,B](p: Parser[A], p2: Parser[B]): Parser[(A,B)]
+  def flatMap[A,B](p: Parser[A])(f: A => Parser[B]): Parser[B]
 
   def map2[A,B,C](p: Parser[A], p2: Parser[B])(f: (A,B) => C): Parser[C] = product(p, p2).map(f.tupled)
   def many1[A](p: Parser[A]): Parser[List[A]] = map2(p, many(p))(_ :: _)
@@ -33,10 +38,13 @@ trait Parsers[Parser[+_]] { self => // so inner classes may call methods of trai
 
     def many: Parser[List[A]] = self.many(p)
     def map[B](f: A => B): Parser[B] = self.map(p)(f)
+    def flatMap[B](f: A => Parser[B]): Parser[B] = self.flatMap(p)(f)
   }
 
   object Laws {
   }
+
+  def numOfChars(c: Char): Parser[List[Char]] = "\\d+".r.flatMap(d => listOfN(d.toInt, char(c)))
 }
 
 case class Location(input: String, offset: Int = 0) {
