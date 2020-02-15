@@ -378,8 +378,14 @@ object IO3 {
   }
 
   // Exercise 2: Implement a specialized `Function0` interpreter.
-  // @annotation.tailrec
-  def runTrampoline[A](a: Free[Function0,A]): A = ???
+  @annotation.tailrec
+  def runTrampoline[A](a: Free[Function0,A]): A = a match {
+    case Return(x) => x
+    case Suspend(s) => s()
+    case FlatMap(Return(x), f) => runTrampoline(f(x))
+    case FlatMap(Suspend(s), f) => runTrampoline(f(s()))
+    case FlatMap(FlatMap(y, g), f) => runTrampoline(y.flatMap(g(_).flatMap(f)))
+  }
 
   // Exercise 3: Implement a `Free` interpreter which works for any `Monad`
   def run[F[_],A](a: Free[F,A])(implicit F: Monad[F]): F[A] = ???
